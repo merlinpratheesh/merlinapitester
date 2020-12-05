@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "verifytesttool": {
+      "hosting": {
+        "merlinapitester": [
+          "verifytesttool"
+        ]
+      }
+    }
+  }
+}
