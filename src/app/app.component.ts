@@ -182,6 +182,11 @@ export class AppComponent implements OnInit, OnDestroy {
                   if (userdetails.data().MembershipType === 'Demo') {
                     this.CurrentUserType = 'Demo';
                     this.CurrentUserProject = 'Demo';
+                    this.gotopaymentspage = true;
+                    this.loadkeysfromDb('/keysList/' + this.userid + '/keys' + '/Demo');
+                  } else {
+                    this.CurrentUserType = 'Demo';
+                    this.CurrentUserProject = 'Demo';
                     this.startDemoUser();
                     this.loadkeysfromDb('/keysList/' + this.userid + '/keys' + '/Demo');
                   }
@@ -194,6 +199,12 @@ export class AppComponent implements OnInit, OnDestroy {
                   this.validMember = true;
                   this.CurrentUserType = userdetails.data().MembershipType;
                   this.CurrentUserProject = userdetails.data().selection;
+                  if (this.CurrentUserProject === 'Demo') {//Member cannot have a public project with name 'Demo'
+                    this.loadkeysfromDb('/keysList/' + this.userid + '/keys' + '/Demo');//alsocheckthisconditionfor member edit/create/delete-Tc
+                  } else {
+                    this.loadkeysfromDb('keys/' + userdetails.data().selection);
+                  }
+
                 }
                 }
               }
@@ -350,13 +361,123 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   Delete() {
-    
+    if (this.CurrentUserProject === 'Demo') {
+      this.savedlocation = 'keysList/' + this.userid + '/' + this.CurrentUserProject + '/' + this.selectedGroupval + '/items/' + this.selectedVal;
+
+    } else {
+      this.savedlocation = this.CurrentUserProject + '/' + this.selectedGroupval + '/items/' + this.selectedVal;
+    }
+
+    if (this.CurrentUserProject === 'Demo' || this.validMember === true) {
+      this.tutorialService.delete(this.savedlocation, this.saveditemforedit).then(success => {
+
+        if (this.myarray.length !== 0) {
+          this.detailsdisplay.setValue(this.myarray[0].details);
+          this.headingtext = this.myarray[0].testitem;
+          this.saveditemforedit = this.myarray[0];
+        }
+        else {
+          this.headingtext = 'TextArea Empty';
+          this.detailsdisplay.setValue('Add NewSection');
+        }
+      });
+
+    } else {
+      alert('Only Member can Delete public projects');
+    }
   }
   openedit() {
- 
+    const locationlocal = this.CurrentUserProject + '/' + this.selectedGroupval + '/items/' + this.selectedVal;
+    const locationlocaldemo = 'keysList/' + this.userid + '/' + this.CurrentUserProject + '/' + this.selectedGroupval + '/items/' + this.selectedVal;
+    if (this.CurrentUserProject === 'Demo' || this.validMember === true) {
+      const dialogRef = this.dialog.open(DialogOverviewExampleDialog, {
+        width: '80vw',
+        data: this.saveditemforedit,
+        disableClose: true
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if (result !== null) {
+          const updateObject = { ...result };
+          if (this.CurrentUserProject === 'Demo'){
+            this.tutorialService.update(locationlocaldemo, updateObject, this.saveditemforedit).then(success => {
+              this.detailsdisplay.setValue(updateObject.details);
+              this.headingtext = updateObject.testitem;
+              this.saveditemforedit.description = updateObject.description;
+              this.saveditemforedit.details = updateObject.details;
+              this.saveditemforedit.linkstackblitz = updateObject.linkstackblitz;
+            });
+          }else{
+            this.tutorialService.update(locationlocal, updateObject, this.saveditemforedit).then(success => {
+              this.detailsdisplay.setValue(updateObject.details);
+              this.headingtext = updateObject.testitem;
+              this.saveditemforedit.description = updateObject.description;
+              this.saveditemforedit.details = updateObject.details;
+              this.saveditemforedit.linkstackblitz = updateObject.linkstackblitz;
+            });
+          }
+          
+        }
+      });
+    } else {
+      alert('Only Member can Edit public projects');
+    }
   }
- 
- 
+
+  refreshList(item) {//When user Selects testitem by doubleclick
+    this.saveditemforedit = item;
+    this.headingtext = `${item.testitem}`;
+    this.detailsdisplay.setValue(`${item.details}`);//show the selected item details
+  }
+
+  AddNew() {// User Adds a New Testitem after selecting the main list
+    if (this.myarray.length < 25) {
+      if (this.CurrentUserProject === 'Demo' || this.validMember === true)
+      {
+      this.showedit = true;
+      }else{
+        alert('Only Member can Add to public projects');
+      }
+
+    } else {
+      alert('Reached Maximum Testcase');
+    }
+  }
+  saveTC() {
+    const locationlocal = this.CurrentUserProject + '/' + this.selectedGroupval + '/items/' + this.selectedVal;
+    const locationlocaldemo = 'keysList/' + this.userid + '/' + this.CurrentUserProject + '/' + this.selectedGroupval + '/items/' + this.selectedVal;
+
+    const updateObject: Testeditems = {
+      value: this.selectedVal,
+      description: 'Enter',
+      linkstackblitz: 'https://www.google.com/',
+      name: this.selectedGroupval,
+      details: 'Enter',
+      testitem: this.newtcheader.value
+    };
+    if (this.CurrentUserProject === 'Demo') {
+      this.tutorialService.create(locationlocaldemo, updateObject).then(resultid => {
+        if (resultid !== null) {
+          const changeditem: loaditems = { ...updateObject };
+          this.detailsdisplay.setValue(updateObject.details);
+          this.headingtext = updateObject.testitem;
+          this.saveditemforedit = changeditem;
+          this.showedit = false;
+        }
+      });
+
+    } else {
+      this.tutorialService.create(locationlocal, updateObject).then(resultid => {
+        if (resultid !== null) {
+          const changeditem: loaditems = { ...updateObject };
+          this.detailsdisplay.setValue(updateObject.details);
+          this.headingtext = updateObject.testitem;
+          this.saveditemforedit = changeditem;
+          this.showedit = false;
+        }
+      });
+    } 
+    this.newtcheader.reset('');
+  }
   exitTC() {// User Adds a New Testitem after selecting the main list and cancels operation
     this.showedit = false;
   }

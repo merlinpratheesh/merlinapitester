@@ -52,9 +52,24 @@
                 </mat-optgroup>
               </mat-select>
             </mat-form-field>
-
- 
+            <button mat-raised-button color="primary" *ngIf="this.myarray.length === 0 && selectedGroupval !== 'Main Section'" (click)="AddNew()"
+            [disabled]="showedit !== false ">New Testcase</button>
+            <button mat-raised-button color="primary" *ngIf="showedit === false && this.myarray.length !== 0"
+              (click)="AddNew()">Add</button>
+            <form class="example-form" *ngIf="showedit" fxLayout="column" fxLayoutGap="10px">
+              <mat-form-field class="example-full-width">
+                <mat-label>Enter New TC Name</mat-label>
+                <input matInput placeholder="Services or Directives" [formControl]="newtcheader">
+              </mat-form-field>
+              <button mat-raised-button color="primary" (click)="saveTC()" [disabled]="!newtcheader.valid">Save</button>
+              <button mat-raised-button color="warn" (click)="exitTC()">Cancel</button>
+            </form>
+            <button mat-raised-button color="accent" *ngIf="this.myarray.length !== 0 && showedit === false"
+              (click)="openedit()">Edit</button>
+            <button mat-raised-button color="warn" *ngIf="this.myarray.length !== 0 && showedit === false"
+              (click)="Delete()">Delete</button>
           </div>
+    
 
           <div fxLayout="column" fxFlex="60vw" fxFlex.lt-sm="80vw" Style="padding-bottom:50px;">
             <h4>Test Info</h4>
