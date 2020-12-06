@@ -5,10 +5,140 @@
       <span fxFlex="grow"></span>
       <mat-icon class="close" (click)="drawerclose()">close</mat-icon>
     </mat-toolbar>
-
+    
     <mat-tab-group mat-align-tabs="start">
+      <mat-tab *ngIf="gotopaymentspage !== true"> 
+        <ng-template mat-tab-label>Home</ng-template>
+        <ng-template matTabContent>
+          
+          <div fxLayout="row" Style="margin-top:20px;margin-bottom:50px;border-style: double;">
+            <div>
+              <mat-label class="example-margin">Current Project</mat-label>{{CurrentUserProject }}
+              </div>
+          </div>
+      
+          <div fxLayout="column" Style="margin-top:10px;margin-bottom:50px;border-style: double; padding:1em;" fxLayoutAlign="space-around start" fxLayoutGap="5vh">
+            <mat-label>Select Project</mat-label>
+            <form class="contents" [formGroup]="homePublicProj" Style="margin-top:10px;">
+              
+              <mat-form-field appearance="fill">
+                <input #trigger1="matAutocompleteTrigger" matInput [matAutocomplete]="auto1" placeholder="Pick one or Create New"
+                  aria-label="Number" formControlName="homePublicProjAutocomplete">
+                <mat-icon (click)="trigger1.panelOpen ? trigger1.closePanel() : trigger1.openPanel()"
+                  class="custom-icon custom-form-field-icon">
+                  arrow_drop_down
+                </mat-icon>
+                <mat-autocomplete #auto1="matAutocomplete" autoActiveFirstOption>
+                  <mat-option *ngFor="let option of (publicProject | async)" [value]="option">{{option}}</mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+        
+            </form>
+
+            <div fxLayoutGap="1em">
+            <button mat-raised-button color="warn" (click)="NewProject()" [disabled]="!homePublicProj.valid || !shownewproject" fxFlex="nogrow">New</button>
+            <button mat-raised-button color="warn" (click)="ChangeCurrProject()" [disabled]="!homePublicProj.valid || !showcurrentproj" fxFlex="nogrow">SetCurrent Project</button>
+            </div>
+            <div>
+
+            <button mat-raised-button color="accent" (click)="NewMember()" [disabled]="validMember" fxFlex="nogrow">Become Member</button>
+                        <mat-label class="example-margin" *ngIf="validMember">Member till:</mat-label>
+                        <mat-label class="example-margin" *ngIf="!validMember">Demo till:</mat-label>
+                         {{selectedmemend | date}}
+             </div>
+          </div>
+
+        </ng-template>
+      </mat-tab>
+    
+      <mat-tab *ngIf="gotopaymentspage !== true && this.validMember"> 
+        <ng-template mat-tab-label>Edit</ng-template>
+        <ng-template matTabContent>
+
+    <label class="example-margin" Style="margin-top:5px;border-style: double;" fxLayoutAlign="center">Add/Modify
+      Project:</label>
+    <form class="contents" [formGroup]="projectName" Style="margin-top:10px;">
+      <mat-label>Select Project</mat-label>
+      <mat-form-field appearance="fill">
+        <mat-select formControlName="editProject">
+          <mat-option *ngFor="let option of publicProjectEdit" [value]="option">{{option}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </form>
+
+    <button mat-raised-button color="warn" (click)="DelSection()" [disabled]="!showDeleteProject"
+      Style="margin-left:10px;">
+      Delete</button>
+
+    <form class="contents" [formGroup]="dbSelectionSec" Style="margin-top:10px;">
+      <mat-label>MainSection</mat-label>
+      <mat-form-field appearance="fill">
+        <input #trigger2="matAutocompleteTrigger" matInput [matAutocomplete]="auto2" placeholder="Pick one"
+        aria-label="Number" formControlName="SecList">
+      <mat-icon (click)="trigger2.panelOpen ? trigger2.closePanel() : trigger2.openPanel()"
+        class="custom-icon custom-form-field-icon">
+        arrow_drop_down
+      </mat-icon>
+      <mat-autocomplete #auto2="matAutocomplete">
+        <mat-option *ngFor="let option of MainSectionList" [value]="option">{{option}}</mat-option>
+      </mat-autocomplete>
+      </mat-form-field>
+
+    </form>
+    <button mat-raised-button color="primary" (click)="MainSection()"
+      [disabled]="!showAddMainsec || !dbSelectionSec.valid"> Add Section</button>
+    <button mat-raised-button color="warn" (click)="DelMainSection()" [disabled]="!showDeleteMainsec"
+      Style="margin-left:10px;"> Delete</button>    
+    <form fxLayout="column" Style="margin-top:10px;"  [formGroup]="checkvisibilityGroup">
+      <label class="example-margin">Section:</label>
+      <mat-radio-group [disabled]="showAddMainsec"  formControlName= "checkedenable" >
+        <mat-radio-button class="example-margin"value="1">Enable</mat-radio-button>
+        <mat-radio-button class="example-margin" value="2">Disable</mat-radio-button>
+      </mat-radio-group>
+    </form>
+
+    <button mat-raised-button color="primary" style="margin-top:10px;" (click)="updatevisibility()"
+    [disabled]="!showvisibility === false || !dbSelectionSec.valid"> Update</button>
+
+    <form class="contents" [formGroup]="dbSelectionSubSec" Style="margin-top:10px;">
+      <mat-label>SubSection</mat-label>
+      <mat-form-field appearance="fill">
+        <input #trigger3="matAutocompleteTrigger" matInput [matAutocomplete]="auto3" placeholder="Pick one"
+          aria-label="Number" formControlName="SubSecList">
+        <mat-icon (click)="trigger3.panelOpen ? trigger3.closePanel() : trigger3.openPanel()"
+          class="custom-icon custom-form-field-icon">
+          arrow_drop_down
+        </mat-icon>
+        <mat-autocomplete #auto3="matAutocomplete">
+          <mat-option *ngFor="let option of SubSectionList" [value]="option">{{option}}</mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </form>
+
+    <button mat-raised-button color="primary" (click)="SubSection()"
+      [disabled]="!showAddSubSec || !dbSelectionSubSec.valid"> Add Sub Section</button>
+    <button mat-raised-button color="warn" (click)="DeleteSubSection()" [disabled]="!showDeleteSubSec"
+      Style="margin-left:10px;"> Delete</button>
+    </ng-template>
+      </mat-tab>
+    
+      <mat-tab>
+        <ng-template mat-tab-label>Payment</ng-template>
+        <ng-template matTabContent>          
+          <div fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="2em" style="padding-top: 50px;">
+          <button mat-raised-button color="primary" (click)="SubSection()">Make a Payment</button>
+          <button mat-raised-button color="primary" (click)="SubSection()"> Contact Support</button>        
+          <button mat-raised-button color="primary" (click)="SubSection()"> Delete Account</button>
+        </div>
+        </ng-template>
+      </mat-tab>
     </mat-tab-group>
 
+    <!--
+  Stars->4 and above will be searchable limited 2 records.
+  if a paying customer then he will be able to search all the projects.
+-->
   </mat-sidenav>
   <mat-sidenav-content>
 
@@ -17,34 +147,33 @@
         <mat-icon Style="margin-right:20px;" *ngIf="!drawer.opened" (click)="drawer.toggle()">
           menu
         </mat-icon>
-
+    
         Tester
-
+    
         <span fxFlex="grow"></span>
-
+    
         <div>
           Welcome {{userDisplayName}}!
           <button mat-icon-button>
-
+    
             <fa-icon (click)="componentLogout()" class="fas faSignOutAlt fa-lg" [icon]="['fas', 'sign-out-alt']">
             </fa-icon>
             <!--signup-->
           </button>
         </div>
-
+        
       </mat-toolbar>
-
+    
       <div class="container-wrapper" fxLayout="column">
         <div fxLayout="row wrap" fxLayoutAlign="space-around center">
-
+    
           <div fxLayout="column" fxFlex="20vw" fxFlex.lt-sm="60vw" Style="padding-bottom:10vh;" fxLayoutGap="10px">
             <h4>{{CurrentUserProject}}</h4>
             <mat-form-field appearance="fill">
               <mat-label>{{selectedGroupval}}</mat-label>
               <mat-select [formControl]="selectFirstPage">
                 <mat-option [value]="{value:'Home Section', groupValue: 'Main Section'}">-- None --</mat-option>
-                <mat-optgroup *ngFor="let group of pokemonGroupsObs | async" [label]="group.name"
-                  [disabled]="group.disabled">
+                <mat-optgroup *ngFor="let group of pokemonGroupsObs | async" [label]="group.name" [disabled]="group.disabled">
                   <mat-option *ngFor="let pokemon of group.pokemon"
                     [value]="{value: pokemon.value, groupValue: group.name}">
                     {{pokemon.viewValue}}
@@ -52,6 +181,7 @@
                 </mat-optgroup>
               </mat-select>
             </mat-form-field>
+
             <button mat-raised-button color="primary" *ngIf="this.myarray.length === 0 && selectedGroupval !== 'Main Section'" (click)="AddNew()"
             [disabled]="showedit !== false ">New Testcase</button>
             <button mat-raised-button color="primary" *ngIf="showedit === false && this.myarray.length !== 0"
@@ -70,7 +200,6 @@
               (click)="Delete()">Delete</button>
           </div>
     
-
           <div fxLayout="column" fxFlex="60vw" fxFlex.lt-sm="80vw" Style="padding-bottom:50px;">
             <h4>Test Info</h4>
             <mat-form-field appearance="fill">
@@ -82,48 +211,72 @@
               </div>
     
             </textarea>
-
+    
             </mat-form-field>
           </div>
-
-        </div>
+    
+        </div>    
         <div fxLayout="column">
-          <h2>Services and Directives</h2>
+          <h2>Services and Directives</h2>    
           <mat-card class="list" fxLayout="row wrap" fxLayout.lt-sm="column" fxLayoutAlign="space-around center">
             <p class="empty-label" *ngIf="this.myarray.length === 0">Empty list</p>
             <app-app-name ngStyle.lt-sm="width:60vw;" fxLayoutAlign.lt-sm="space-between center"
               *ngFor="let task of (filteredOptions | async)" [task]="task" (toshow)="refreshList($event)"></app-app-name>
-          </mat-card>  
+          </mat-card>    
         </div>
       </div>
     </div>
+  
+  <div *ngIf="loggedin === undefined">
+    <mat-toolbar color="primary">
+      <mat-icon Style="margin-right:20px;" *ngIf="!drawer.opened" (click)="drawer.toggle()">
+        menu
+      </mat-icon>
+  
+      Tester
+  
+      <span fxFlex="grow"></span>
+  
+      <div>
+        <button mat-icon-button>
+          <fa-icon (click)="tutorialService.login()" class="fas faSignInAlt fa-lg" [icon]="['fas', 'sign-in-alt']">
+          </fa-icon>
+        </button>
+      </div>
+      
+    </mat-toolbar>
 
-    <div *ngIf="loggedin === undefined">
-      <mat-toolbar color="primary">
-
-        please wait
-
-      </mat-toolbar>
-
-    </div>
-    <div *ngIf="loggedin === 'false'">
-      <mat-toolbar color="primary">
-        <h1>
-          SanityTests
-        </h1>
-
-        <span fxFlex="grow"></span>
-
-        <div>
-          Welcome User!
-          <button mat-icon-button>
-            <fa-icon (click)="tutorialService.login()" class="fas faSignInAlt fa-lg" [icon]="['fas', 'sign-in-alt']">
-            </fa-icon>
-          </button>
-        </div>
-      </mat-toolbar>
-      SHOW SCELETON Menu details
-      Show log in dialog
-    </div>
-  </mat-sidenav-content>
+  </div>
+  <div *ngIf="loggedin === 'false'">
+    <mat-toolbar color="primary">
+      <h1>
+        SanityTests
+      </h1>
+  
+      <span fxFlex="grow"></span>
+  
+      <div>
+        Welcome User!
+        <button mat-icon-button>
+          <fa-icon (click)="tutorialService.login()" class="fas faSignInAlt fa-lg" [icon]="['fas', 'sign-in-alt']">
+          </fa-icon>
+        </button>
+      </div>    
+    </mat-toolbar>
+    SHOW SCELETON Menu details
+    Show log in dialog  
+  </div>
+</mat-sidenav-content>
 </mat-sidenav-container>
+
+
+
+<!--
+content-wrapper yellow column ->margin-top:20,padding-top:20;
+  container-wrapper blue column/space-evenly center->margin-top:20,padding-top:20;
+    container green row/column width:90vw
+      div column
+      div column fxFlex70vw/50vh
+    container green column
+
+-->

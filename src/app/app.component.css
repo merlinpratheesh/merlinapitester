@@ -1,0 +1,52 @@
+.container-wrapper {
+    max-width: auto;
+    margin: 10px;
+    padding: 10px;
+  }
+  
+ 
+  .list {
+    border: solid 1px #ccc;
+    min-height: 60px;
+    border-radius: 4px;
+  }
+
+  .empty-label {
+    font-size: 2em;
+    padding-top: 10px;
+    text-align: center;
+    opacity: 0.2;
+  }
+
+  .drawer {
+    position: fixed;
+    height: 100vh;
+    min-width: 25%;
+    border-right: 1px solid #ccc;
+  }
+  .drawer.header {
+    position: absolute;
+    right: 0;
+    justify-content: space-between;
+  }
+  .drawer.contents {
+    padding: 16px;
+    
+  }
+  .custom-icon {
+    cursor: pointer;
+  }
+  
+
+  
+  .custom-form-field-icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  .example-margin {
+    margin: 0 10px;
+  }
+
+  
+  

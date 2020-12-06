@@ -58,7 +58,6 @@ export class AppComponent implements OnInit, OnDestroy {
   somedata: loaditems[] = [];
   mysubject$;
   myarray: loaditems[] = [];
-  
   myarrayload: PokemonGroup[] = [];
   newpokearray: Pokemon[] = [];
   myshirts: Observable<any>;
@@ -98,6 +97,7 @@ export class AppComponent implements OnInit, OnDestroy {
   myitemsdisplaycoll: Observable<any>;
   mytodo: BehaviorSubject<any[]>;
 
+  showEditProject = false;
   showDeleteProject = false;
 
   showAddMainsec = false;
@@ -138,7 +138,16 @@ export class AppComponent implements OnInit, OnDestroy {
   mysubSec: Subscription;
   publicProject: Observable<string[]>;
   publicProjectEdit: string[]=[];
-
+  pokemonGroupsObsStart: PokemonGroup[] = [
+    {
+      disabled: false,
+      name: 'Main Section',
+      pokemon: [
+        {
+          value: 'HomeSection',
+          viewValue: 'StartTC'
+        }]
+    }];
   userSelectedproject = '';
   publicprojectsList: string[] = [];
   publicprojectsListforEdit: string[] = [];
@@ -161,10 +170,145 @@ export class AppComponent implements OnInit, OnDestroy {
     public cd: ChangeDetectorRef,
     public fb: FormBuilder
   ) {//setup Auth and Query Observables
+    this.submenuSub= this.dbSelectionSubSec.valueChanges.subscribe(selectedsubsec => {
+      this.checklength = this.SubSectionList.filter(item => item.toLowerCase() === (selectedsubsec.SubSecList.toLowerCase()));
+      if (this.checklength.length === 0) {//UNIQUE
+        this.showAddSubSec = true;
+        this.showDeleteSubSec = false;
+      } else {
+        this.showAddSubSec = false;
+        this.showDeleteSubSec = true;
+      }
+    });
+
+    //here user will serach for the project and if project is found no buttons are highlighted.
+    this.mainmenuSub = this.dbSelectionSec.valueChanges.subscribe(selectedsection => {
+      if(selectedsection.SecList !== ''){  //IMP learning
+        console.log('186',selectedsection,selectedsection.SecList);
+        this.checklength = this.MainSectionList.filter(item => item.toLowerCase() === (selectedsection.SecList.toLowerCase()));
+        if (this.checklength.length === 0) {//UNIQUE
+          this.showAddMainsec = true;
+          this.showDeleteMainsec = false;
+          this.SubSectionList = [];
+          this.checkedenable.setValue('2');
+          console.log('reachedafyetuserchange');
+          this.showvisibility=true;
+          if (this.dbSelectionSubSec.valid) {
+            this.dbSelectionSubSec.reset({SubSecList:''});
+          }
+          this.dbSelectionSubSec.disable();
+
+        } else {
+          this.dbSelectionSubSec.enable();
+          this.checkvisibilityGroup.enable();
+          /*if(this.dbSelectionSubSec.enabled ){
+            if (this.dbSelectionSubSec.valid) {
+              this.dbSelectionSubSec.reset({SubSecList:''});
+            }
+          }else{
+            this.dbSelectionSubSec.enable();
+          }*/
+          this.showvisibility=false;
+          this.SubSectionList = [];
+          this.showAddMainsec = false;
+          this.showDeleteMainsec = true;
+          this.selectedprojectkeys[selectedsection.SecList].forEach(singlesublist => {
+            for (const mission in singlesublist) {
+              this.SubSectionList.push(mission);
+              this.savedisabledval = singlesublist[mission];
+            }
+          });
+
+        }
+      }
+    });
+
+    this.projselSub= this.projectName.valueChanges.pipe(
+      switchMap((userselection: any) => {
+        return doc(this.db.firestore.doc('keys/' + userselection.editProject)).pipe(take(1),
+          map((values: any) => {
+            console.log('data',values.data());
+              this.MainSectionList = [];
+              this.SubSectionList = [];
+              console.log('236',this.dbSelectionSec.enabled,this.dbSelectionSubSec.enabled );
+
+                this.dbSelectionSec.reset({SecList:''});
+
+
+                this.dbSelectionSubSec.reset({SubSecList:''});
+
+
+                this.checkvisibilityGroup.reset({checkedenable:'2'});                
+
+              this.checkvisibilityGroup.disable();
+              this.showAddMainsec = false;
+              this.showDeleteMainsec = false;
+              this.dbSelectionSec.enable();
+              
+              this.selectedprojectkeys = values.data();
+              for (const allmainlist in values.data()) {
+                this.MainSectionList.push(allmainlist);
+                this.selectedprojectkeys[allmainlist].forEach(singlesublist => {
+                  for (const mission in singlesublist) {
+                    this.SubSectionList.push(mission);
+                    this.savedisabledval = singlesublist[mission];
+                  }
+                });
+                if(this.savedisabledval === true){
+                  this.checkedenable.setValue('1');
+                }else{
+                  this.checkedenable.setValue('2');
+                }
+              }
+              this.showDeleteProject = true;
+            return values.data();
+          }));
+      })).subscribe(some => {
+
+      });
+      this.newprojselSub= this.homePublicProj.valueChanges.subscribe(userselection => {
+      if (userselection && userselection.homePublicProjAutocomplete !== null) {
+        this.userSelectedproject = userselection.homePublicProjAutocomplete;
+        console.log('235',this.userSelectedproject);
+        this.checklength = this.publicprojectsList.filter(item => item.toLowerCase() === (this.userSelectedproject.toLowerCase()));
+        if (this.checklength.length === 0) {//UNIQUE
+          if (this.CurrentUserType === 'Demo') {
+            this.shownewproject = false;
+            this.showcurrentproj = false;
+          } else {
+            this.shownewproject = true;
+            this.showcurrentproj = false;
+          }
+        } else {
+          if (this.CurrentUserType === 'Demo') {
+            this.shownewproject = false;
+            this.showcurrentproj = true;
+          } else {
+            this.shownewproject = false;
+            this.showcurrentproj = true;
+          }
+        }
+      }
+    });
+
     this.authstartSub= this.afAuth.authState.pipe(
       switchMap((credential: any) => {
         if (credential !== null) {
-          
+          this.publicProject = this.homePublicProj.valueChanges.pipe(
+            startWith({homePublicProjAutocomplete:''}),
+            switchMap((some:any)=>{
+              console.log('some',some);
+              return doc(this.db.firestore.doc('keysList/listid')).pipe(
+                map((val:any)=>{
+                  console.log(val.data());
+                  this.publicprojectsList =val.data().AllList;
+                  this.publicprojectsList = this.publicprojectsList.filter(item => item !== this.CurrentUserProject);
+                  this.publicprojectsList = this.publicprojectsList.filter((option => option.toLowerCase().includes(some.homePublicProjAutocomplete.toLowerCase())));
+                  console.log(this.publicprojectsList);
+                  return this.publicprojectsList;
+                }))
+            }));
+
           this.loggedin = 'true';
           this.userid = credential.uid;
           this.userDisplayName = credential.displayName;
@@ -233,6 +377,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
       }
     });
+
     this.mainpagekeySub = this.selectFirstPage.valueChanges.subscribe(userselection => {
       if(userselection !== null){
         console.log(this.userid, this.CurrentUserType, this.CurrentUserProject);
@@ -252,7 +397,15 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     });
   }
+  updatevisibility(){
 
+    if(this.checkvisibilityGroup.controls['checkedenable'].value === '1'){
+      console.log('Enabled');
+    }else{
+      console.log('Disabled');
+    }
+
+  }
   get checkedenable() {return this.checkvisibilityGroup.get('checkedenable')}; 
 
   openDialog(status: string): void {
@@ -298,8 +451,8 @@ export class AppComponent implements OnInit, OnDestroy {
     };
     this.db.doc<Item>('myProfile/' + this.userid).set(newItem);
     this.db.collection('keysList/' + this.userid + '/keys').doc(newItem.selection).set({ MainSection: [{ SubSection: false }] });
-
   }
+
   loadTestCase(locationlocal) {
     this.filteredOptions = doc(this.db.firestore.doc(locationlocal)).pipe(
       map((tctoshow: any) => {
@@ -321,7 +474,6 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       }));
   }
-
 
 
   ngOnDestroy() {
@@ -359,7 +511,11 @@ export class AppComponent implements OnInit, OnDestroy {
   draweropen() {
 
   }
-
+  refreshList(item) {//When user Selects testitem by doubleclick
+    this.saveditemforedit = item;
+    this.headingtext = `${item.testitem}`;
+    this.detailsdisplay.setValue(`${item.details}`);//show the selected item details
+  }
   Delete() {
     if (this.CurrentUserProject === 'Demo') {
       this.savedlocation = 'keysList/' + this.userid + '/' + this.CurrentUserProject + '/' + this.selectedGroupval + '/items/' + this.selectedVal;
@@ -422,13 +578,6 @@ export class AppComponent implements OnInit, OnDestroy {
       alert('Only Member can Edit public projects');
     }
   }
-
-  refreshList(item) {//When user Selects testitem by doubleclick
-    this.saveditemforedit = item;
-    this.headingtext = `${item.testitem}`;
-    this.detailsdisplay.setValue(`${item.details}`);//show the selected item details
-  }
-
   AddNew() {// User Adds a New Testitem after selecting the main list
     if (this.myarray.length < 25) {
       if (this.CurrentUserProject === 'Demo' || this.validMember === true)
@@ -441,6 +590,8 @@ export class AppComponent implements OnInit, OnDestroy {
     } else {
       alert('Reached Maximum Testcase');
     }
+
+
   }
   saveTC() {
     const locationlocal = this.CurrentUserProject + '/' + this.selectedGroupval + '/items/' + this.selectedVal;
@@ -480,6 +631,32 @@ export class AppComponent implements OnInit, OnDestroy {
   }
   exitTC() {// User Adds a New Testitem after selecting the main list and cancels operation
     this.showedit = false;
+  }
+
+  ChangeCurrProject() {
+    this.CurrentUserProject = this.homePublicProj.controls['homePublicProjAutocomplete'].value;
+    this.loadkeysfromDb('keys/' + this.CurrentUserProject);
+    if (this.CurrentUserType !== 'Demo') {//member is trying other projects
+      this.tutorialService.getMyProfileInfoUpdate({ selection: this.homePublicProj.controls['homePublicProjAutocomplete'].value }, this.userid);
+    }
+    if (this.homePublicProj.valid) {
+      this.homePublicProj.reset({homePublicProjAutocomplete:''});
+    }
+    this.sidenav.close();
+  }
+
+  NewProject() {// member screating own project
+    const newItem: Item = {
+      selection: this.homePublicProj.controls['homePublicProjAutocomplete'].value
+    };
+    this.tutorialService.createnewproject(newItem, this.userid);
+    this.CurrentUserProject = newItem.selection;
+    this.loadkeysfromDb('keys/' + this.CurrentUserProject);
+    if (this.CurrentUserType !== 'Demo') {//member is trying other projects
+      this.tutorialService.getMyProfileInfoUpdate({ selection:newItem.selection }, this.userid);
+    }
+
+    this.sidenav.close();
   }
 }
 
