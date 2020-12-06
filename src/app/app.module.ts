@@ -2,17 +2,23 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
-import { AppComponent,DialogOverviewExampleDialog } from './app.component';
+import { AppComponent, DialogAStartSpinner, DialogOverviewExampleDialog } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 import { AppSharedModule } from './app-shared/app-shared.module';
+import { AppNameComponent } from './app-name/app-name.component';
 import { AngularFireModule } from '@angular/fire';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
 import { AngularFireStorageModule } from '@angular/fire/storage';
 import { AngularFireAuthModule } from '@angular/fire/auth';
-import { environment } from '../environments/environment'
+
+import { environment } from '../environments/environment';
+
 @NgModule({
   declarations: [
     AppComponent,
+    AppNameComponent,
+    DialogAStartSpinner,
     DialogOverviewExampleDialog
   ],
   imports: [
@@ -26,7 +32,7 @@ import { environment } from '../environments/environment'
     AngularFireStorageModule // storage
   ],
   providers: [],
-  entryComponents:[DialogOverviewExampleDialog],
+  entryComponents:[DialogAStartSpinner, DialogOverviewExampleDialog],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
