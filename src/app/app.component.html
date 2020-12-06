@@ -76,8 +76,9 @@
           <h2>Services and Directives</h2>
           <mat-card class="list" fxLayout="row wrap" fxLayout.lt-sm="column" fxLayoutAlign="space-around center">
             <p class="empty-label" *ngIf="this.myarray.length === 0">Empty list</p>
-           
-          </mat-card>
+            <app-app-name ngStyle.lt-sm="width:60vw;" fxLayoutAlign.lt-sm="space-between center"
+              *ngFor="let task of (filteredOptions | async)" [task]="task" (toshow)="refreshList($event)"></app-app-name>
+          </mat-card>  
         </div>
       </div>
     </div>

@@ -182,11 +182,6 @@ export class AppComponent implements OnInit, OnDestroy {
                   if (userdetails.data().MembershipType === 'Demo') {
                     this.CurrentUserType = 'Demo';
                     this.CurrentUserProject = 'Demo';
-                    this.gotopaymentspage = true;
-                    this.loadkeysfromDb('/keysList/' + this.userid + '/keys' + '/Demo');
-                  } else {
-                    this.CurrentUserType = 'Demo';
-                    this.CurrentUserProject = 'Demo';
                     this.startDemoUser();
                     this.loadkeysfromDb('/keysList/' + this.userid + '/keys' + '/Demo');
                   }
@@ -227,6 +222,24 @@ export class AppComponent implements OnInit, OnDestroy {
 
       }
     });
+    this.mainpagekeySub = this.selectFirstPage.valueChanges.subscribe(userselection => {
+      if(userselection !== null){
+        console.log(this.userid, this.CurrentUserType, this.CurrentUserProject);
+        console.log(userselection.value, userselection.groupValue);
+        //return('display keys');
+        this.selectedGroupval = userselection.groupValue;
+        this.selectedVal = userselection.value;
+        if (userselection !== null) {
+          if (this.CurrentUserProject === 'Demo') {
+            this.loadTestCase('keysList/' + this.userid + '/' + this.CurrentUserProject + '/' + userselection.groupValue + '/items/' + userselection.value);
+          } else {
+            console.log(this.CurrentUserProject + '/' + userselection.groupValue + '/items/' + userselection.value, '255');
+            this.loadTestCase(this.CurrentUserProject + '/' + userselection.groupValue + '/items/' + userselection.value);
+          }
+          return ('display keys-Load Tc from Db-Display First Listed Tc Details for the user');
+        }              
+      }
+    });
   }
 
   get checkedenable() {return this.checkvisibilityGroup.get('checkedenable')}; 
@@ -265,12 +278,39 @@ export class AppComponent implements OnInit, OnDestroy {
       }));
   }
   startDemoUser() {
+    const nextMonth: Date = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const newItem: Item = {
+      MembershipEnd: nextMonth.toDateString(),
+      MembershipType: 'Demo',
+      selection: 'Demo'
+    };
+    this.db.doc<Item>('myProfile/' + this.userid).set(newItem);
+    this.db.collection('keysList/' + this.userid + '/keys').doc(newItem.selection).set({ MainSection: [{ SubSection: false }] });
 
   }
-
   loadTestCase(locationlocal) {
-    
+    this.filteredOptions = doc(this.db.firestore.doc(locationlocal)).pipe(
+      map((tctoshow: any) => {
+        this.myarray = [];
+        if (tctoshow.data() === undefined) {
+          //this.filteredOptions = this.myarray;
+          this.headingtext = 'TextArea Empty';
+          this.detailsdisplay.setValue('Add NewSection');
+          return this.myarray;
+        } else {
+          this.myarray = tctoshow.data().item;
+          //this.filteredOptions = this.myarray;
+          if (this.myarray.length !== 0) {
+            this.detailsdisplay.setValue(this.myarray[0].details);
+            this.headingtext = this.myarray[0].testitem;
+            this.saveditemforedit = this.myarray[0];
+          }
+          return this.myarray;
+        }
+      }));
   }
+
 
 
   ngOnDestroy() {
